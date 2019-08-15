@@ -179,7 +179,7 @@ def setEscola():
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO tb_escola(nome, fk_id_endereco, fk_id_campus)
-        VALUES(?, ?, ?, );
+        VALUES(?, ?, ?);
     """, (nome, fk_id_endereco, fk_id_campus))
 
     conn.commit()
@@ -194,9 +194,9 @@ def setEscola():
 # Tabela Campus
 
 @app.route("/campi", methods=['GET'])
-def getCampi():
-    logger.info("Listando os câmpus.")
-    escolas = []
+def getCampus():
+    logger.info("Listando todos os campi.")
+    campi = []
     try:
         # abrir conexão com o banco de dados.
         conn = sqlite3.connect('EscolaApp_versao2.db')
@@ -205,13 +205,13 @@ def getCampi():
         cursor.execute("""
             SELECT * FROM tb_campus;
         """)
-        # iterando os registros.
         for linha in cursor.fetchall():
             campus = {
-                "sigla":linha[0],
-                "cidade":linha[1],
+                "id_campus":linha[0],
+                "sigla":linha[1],
+                "cidade":linha[2]
             }
-            escolas.append(campus)
+            campi.append(campus)
         logger.info(campi)
         # fechar conexão.
         conn.close()
@@ -219,10 +219,10 @@ def getCampi():
     except(sqlite3.Error):
         logger.error("Aconteceu um erro com a tabela campus.")
 
-    return jsonify(campus)
+    return jsonify(campi)
 
-@app.route("/campi/<int:id>", methods=['GET'])
-def getCampus(id):
+@app.route("/campus/<int:id>", methods=['GET'])
+def getCampusById(id):
     logger.info("Listando campus por id: %s"%(id))
     # abrir conexão com o banco de dados.
     conn = sqlite3.connect('EscolaApp_versao2.db')
@@ -235,8 +235,9 @@ def getCampus(id):
 
     linha = cursor.fetchone()
     campus = {
-        "sigla":linha[0],
-        "cidade":linha[1],
+        "id_campus":linha[0],
+        "sigla":linha[1],
+        "cidade":linha[2]
     }
 
     # fechar conexão.
@@ -255,8 +256,8 @@ def setCampus():
     conn = sqlite3.connect('EscolaApp_versao2.db')
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO tb_escola(sigla, cidade)
-        VALUES(?, ?, );
+        INSERT INTO tb_campus(sigla, cidade)
+        VALUES(?, ?);
     """, (sigla, cidade))
     conn.commit()
     conn.close()
@@ -266,6 +267,491 @@ def setCampus():
     campusJson["id"] = id
 
     return jsonify(campusJson)
+
+# Tabela Aluno
+
+@app.route("/alunos", methods=['GET'])
+def getALunos():
+    logger.info("Listando alunos.")
+    alunos = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_aluno;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            aluno = {
+                "id_aluno":linha[0],
+                "nome":linha[1],
+                "matricula":linha[2],
+                "cpf":linha[3],
+                "nascimento":linha[4],
+                "fk_id_endereco":linha[5],
+                "fk_id_curso":linha[6],
+            }
+            alunos.append(aluno)
+        logger.info(alunos)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela aluno.")
+
+    return jsonify(alunos)
+
+@app.route("/alunos/<int:id>", methods=['GET'])
+def getAlunoById(id):
+    logger.info("Listando alunos por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_aluno WHERE id_aluno = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    aluno = {
+        "nome":linha[0],
+        "matricula":linha[1],
+        "cpf":linha[2],
+        "nascimento":linha[3],
+        "fk_id_endereco":linha[4],
+        "fk_id_curso":linha[5]
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(aluno)
+
+@app.route("/aluno", methods=['POST'])
+def setAluno():
+    # Recuperando dados do JSON.
+    alunoJson = request.get_json()
+
+    nome = alunoJson['nome']
+    matricula = alunoJson['matricula']
+    cpf = alunoJson['cpf']
+    nascimento = alunoJson['nascimento']
+    fk_id_endereco = alunoJson['fk_id_endereco']
+    fk_id_curso = alunoJson['fk_id_curso']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_aluno(nome, matricula, cpf, nascimento, fk_id_endereco,fk_id_curso)
+        VALUES(?, ?, ?, ?, ?, ?);
+    """, (nome, matricula, cpf, nascimento, fk_id_endereco,fk_id_curso))
+
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    alunoJson["id"] = id
+
+    return jsonify(alunoJson)
+
+# Tabela  curso
+
+@app.route("/cursos", methods=['GET'])
+def getCursos():
+    logger.info("Listando todos os cursos.")
+    cursos = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_curso;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            curso = {
+                "nome":linha[0],
+                "turno":linha[1],
+                "fk_id_turno":linha[2],
+            }
+            cursos.append(curso)
+        logger.info(cursos)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela curso.")
+
+    return jsonify(cursos)
+
+@app.route("/cursos/<int:id>", methods=['GET'])
+def getCursoById(id):
+    logger.info("Listando cursos por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_curso WHERE id_curso = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    curso = {
+        "nome":linha[0],
+        "turno":linha[1],
+        "fk_id_turno":linha[2],
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(curso)
+
+@app.route("/curso", methods=['POST'])
+def setCurso():
+    # Recuperando dados do JSON.
+    cursoJson = request.get_json()
+
+    nome = cursoJson['nome']
+    turno = cursoJson['turno']
+    fk_id_turno = cursoJson['fk_id_turno']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_curso(nome, turno, fk_id_turno)
+        VALUES(?, ?, ?);
+    """, (nome, turno, fk_id_turno))
+
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    cursoJson["id"] = id
+
+    return jsonify(cursoJson)
+
+# Tabela Turma
+
+@app.route("/turmas", methods=['GET'])
+def getTurmas():
+    logger.info("Listando todas as turmas.")
+    turmas = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_turma;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            turma = {
+                "id_turma":linha[0],
+                "nome":linha[1],
+                "fk_id_curso":linha[2],
+            }
+            turmas.append(turma)
+        logger.info(turmas)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela turma.")
+
+    return jsonify(turma)
+
+@app.route("/turmas/<int:id>", methods=['GET'])
+def getTurmaById(id):
+
+    logger.info("Listando turma por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_turma WHERE id_turma = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    turma = {
+        "id_turma":linha[0],
+        "nome":linha[1],
+        "fk_id_curso":linha[2],
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(turma)
+
+@app.route("/turma", methods=['POST'])
+def setTurma():
+    # Recuperando dados do JSON.
+    turmaJson = request.get_json()
+
+    nome = turmaJson['nome']
+    fk_id_curso = turmaJson['fk_id_curso']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_turma(nome, fk_id_curso)
+        VALUES(?, ?);
+    """, (nome, fk_id_curso))
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    turmaJson["id"] = id
+
+    return jsonify(turmaJson)
+
+# Tabela Turno
+
+@app.route("/turnos", methods=['GET'])
+def getTurnos():
+    logger.info("Listando todos os turnos.")
+    turnos = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_turno;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            turno = {
+                "id_turno":linha[0],
+                "nome":linha[1],
+            }
+            turnos.append(turno)
+        logger.info(turnos)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela professor.")
+
+    return jsonify(turnos)
+
+@app.route("/turnos/<int:id>", methods=['GET'])
+def getTurnoById(id):
+
+    logger.info("Listando endereço por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_turno WHERE id_turno = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    turno = {
+        "id_turno":linha[0],
+        "nome":linha[1],
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(turno)
+
+@app.route("/turno", methods=['POST'])
+def setTurno():
+    # Recuperando dados do JSON.
+    turnoJson = request.get_json()
+
+    id_turno = turnoJson['id_turno']
+    nome = turnoJson['nome']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_turno(id_turno, nome)
+        VALUES(?, ?);
+    """, (id_turno, nome))
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    turnoJson["id"] = id
+
+    return jsonify(turnoJson)
+
+# Tabela Professor
+
+@app.route("/professores", methods=['GET'])
+def getProfessores():
+    logger.info("Listando todos os professores.")
+    professores = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_professor;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            professor = {
+                "id_professor":linha[0],
+                "nome":linha[1],
+                "fk_id_endereco":linha[2],
+            }
+            professores.append(professor)
+        logger.info(professores)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela professor.")
+
+    return jsonify(professores)
+
+@app.route("/professores/<int:id>", methods=['GET'])
+def getProfessoresById(id):
+
+    logger.info("Listando professor por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_professor WHERE id_professor = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    professor = {
+        "id_professor":linha[0],
+        "nome":linha[1],
+        "fk_id_endereco":linha[2],
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(professor)
+
+
+@app.route("/professor", methods=['POST'])
+def setProfessor():
+    # Recuperando dados do JSON.
+    professorJson = request.get_json()
+
+    nome = professorJson['nome']
+    fk_id_endereco = professorJson['fk_id_endereco']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_professor(nome, fk_id_endereco)
+        VALUES(?, ?);
+    """, (nome, fk_id_endereco))
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    professorJson["id"] = id
+
+    return jsonify(professorJson)
+
+@app.route("/disciplinas", methods=['GET'])
+def getDisciplinas():
+    logger.info("Listando as disciplinas.")
+    disciplinas = []
+    try:
+        # abrir conexão com o banco de dados.
+        conn = sqlite3.connect('EscolaApp_versao2.db')
+        cursor = conn.cursor()
+        # executar a consulta.​
+        cursor.execute("""
+            SELECT * FROM tb_disciplina;
+        """)
+        # iterando os registros.
+        for linha in cursor.fetchall():
+            disciplina = {
+                "id_turma":linha[0],
+                "nome":linha[1],
+                "fk_id_professor":linha[2],
+            }
+            disciplinas.append(disciplina)
+        logger.info(disciplinas)
+        # fechar conexão.
+        conn.close()
+
+    except(sqlite3.Error):
+        logger.error("Aconteceu um erro com a tabela disciplina.")
+
+    return jsonify(disciplinas)
+
+
+@app.route("/disciplinas/<int:id>", methods=['GET'])
+def getDisciplinaById(id):
+
+    logger.info("Listando disciplina por id: %s"%(id))
+    # abrir conexão com o banco de dados.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+
+    # executar a consulta.​​
+    cursor.execute("""
+        SELECT * FROM tb_disciplina WHERE id_turma = ?;
+    """, (id, ));
+
+    linha = cursor.fetchone()
+    disciplina = {
+        "id_turma":linha[0],
+        "nome":linha[1],
+        "fk_id_professor":linha[2],
+    }
+
+    # fechar conexão.
+    conn.close()
+    return jsonify(disciplina)
+
+@app.route("/disciplina", methods=['POST'])
+def setDisciplina():
+    # Recuperando dados do JSON.
+    disciplinaJson = request.get_json()
+
+    id_turma = disciplinaJson['id_turma']
+    nome = disciplinaJson['nome']
+    fk_id_professor = disciplinaJson['fk_id_professor']
+
+    # Inserir dados na Base.
+    conn = sqlite3.connect('EscolaApp_versao2.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tb_disciplina(id_turma, nome, fk_id_professor)
+        VALUES(?, ?, ?);
+    """, (id_turma, nome, fk_id_professor))
+    conn.commit()
+    conn.close()
+
+    # Identificador do último registro inserido.
+    id = cursor.lastrowid
+    disciplinaJson["id"] = id
+
+    return jsonify(disciplinaJson)
 
 
 # Mensagem de erro para recurso não encontrado.
@@ -281,13 +767,6 @@ def not_found(error=None):
     return resp
 
 @app.errorhandler(JsonValidationError)
-def validation_error(e):
-    return jsonify({ 'error': e.message, 'errors': [validation_error.message for validation_error  in e.errors]})
-
-
-if(__name__ == '__main__'):
-    app.run(host='0.0.0.0', debug=True, use_reloader=True)
-
 def validation_error(e):
     return jsonify({ 'error': e.message, 'errors': [validation_error.message for validation_error  in e.errors]})
 
