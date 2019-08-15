@@ -24,6 +24,89 @@ schema.init_app(app)
 # Banco de dados.
 DATABASE_NAME = 'EscolaApp_versao2.db'
 
+#Validação
+schema = JsonSchema()
+schema.init_app(app)
+
+endereco_schema = {
+    'required': ['logradouro', 'complemento',  'bairro', 'cep', 'numero'],
+    'properties': {
+        'logradouro': {'type': 'string'},
+        'complemento': {'type': 'string'},
+        'bairro': {'type': 'string'},
+        'cep': {'type': 'string'},
+        'numero': {'type': 'integer'}
+    }
+}
+
+escola_schema = {
+    'required': ['nome', 'fk_id_endereco', 'fk_id_campus'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'fk_id_endereco': {'type': 'integer'},
+        'fk_id_campus': {'type': 'integer'}
+    }
+}
+
+aluno_schema = {
+    'required': ['nome', 'matricula', 'cpf', 'nascimento', 'fk_id_endereco', 'fk_id_curso'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'matricula': {'type': 'string'},
+        'cpf': {'type': 'string'},
+        'nascimento': {'type': 'string'},
+        'fk_id_endereco': {'type': 'integer'},
+        'fk_id_curso': {'type': 'integer'}
+    }
+}
+
+professor_schema = {
+    'required': ['nome', 'fk_id_endereco'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'fk_id_endereco': {'type': 'integer'}
+    }
+}
+
+disciplina_schema = {
+    'required': ['nome', 'fk_id_professor'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'fk_id_professor': {'type': 'integer'}
+    }
+}
+
+curso_schema = {
+    'required': ['nome','fk_id_turno'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'fk_id_turno': {'type': 'integer'}
+    }
+}
+
+campus_schema = {
+    'required': ['sigla','cidade'],
+    'properties': {
+        'sigla': {'type': 'string'},
+        'cidade': {'type': 'string'}
+    }
+}
+
+turma_schema = {
+    'required': ['nome','fk_id_curso'],
+    'properties': {
+        'nome': {'type': 'string'},
+        'fk_id_curso': {'type': 'integer'}
+    }
+}
+
+turno_schema = {
+    'required': ['nome'],
+    'properties': {
+        'nome': {'type': 'string'}
+    }
+}
+
 # Recurso
 @app.route("/enderecos", methods=['GET'])
 def getEnderecos():
